@@ -1,0 +1,111 @@
+/* General container styling */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #e1f5fe;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Title and header */
+.game-header {
+  text-align: center;
+}
+
+.game-title {
+  font-size: 3rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.round-info {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.game-over {
+  font-size: 1.5rem;
+  color: #f44336;
+}
+
+.game-images {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 80%;
+  height: 300px;
+  background-color: #87d37c; /* Grass background */
+  border: 10px solid #8e44ad; /* Fence color */
+  border-radius: 8px;
+  background-repeat: repeat-x;
+  background-size: cover;
+  margin-bottom: 20px;
+}
+
+
+/* Buttons */
+.controls {
+  display: flex;
+  gap: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.new-round-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.new-round-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.new-round-btn:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.reset-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.reset-btn:hover {
+  background-color: #e53935;
+}
+
+.vote-btn {
+  padding: 10px;
+  margin: 5px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.vote-btn.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.vote-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
