@@ -1,28 +1,29 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom'; // Import BrowserRouter, Routes, and Route
+import { HashRouter, Routes, Route } from 'react-router-dom'; // Import BrowserRouter, Routes, and Route
 import GameBoard from './components/GameBoard';
 import LoginPage from './components/LoginPage';
 import VotePage from './components/VotePage';
-import { signOutUser } from './util/authUtils';
+import './reset/reset.min.css'
+import './reset/reset.scss'
 
 const App: React.FC = () => {
     const gameId = 'game1';
   return (
     <Routes>
       <Route path='/' element={<LoginPage />} />
-      <Route path='/gameboard' element={<GameBoard {...{ gameId }} />} />
-      <Route path='/votepage' element={<VotePage {...{ gameId }} />} />
-      {/* Add more routes as needed */}
+      <Route path='/login' element={<LoginPage />} />
+
+      <Route path='/board' element={<GameBoard {...{ gameId }} />} />
+      <Route path='/vote' element={<VotePage {...{ gameId }} />} />
     </Routes>
   );
 };
 
 const Root: React.FC = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <App />
-      <button onClick={() => signOutUser()}>logout</button>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 

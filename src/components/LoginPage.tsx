@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { signInWithGoogle, observeAuthState } from '../util/authUtils';
 import { useNavigate } from 'react-router-dom'; // For navigation after login
+import './LoginPage.scss';
 
 const LoginPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -11,7 +12,7 @@ const LoginPage: React.FC = () => {
     const unsubscribe = observeAuthState((currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        navigate('/votepage'); // Redirect to the gameboard if logged in
+        navigate('/vote');
       }
     });
 
@@ -22,7 +23,7 @@ const LoginPage: React.FC = () => {
     try {
       const user = await signInWithGoogle();
       setUser(user);
-      navigate('/gameboard'); // Navigate to gameboard after successful login
+      navigate('/vote');
     } catch (error) {
       console.error('Login error:', error);
     }

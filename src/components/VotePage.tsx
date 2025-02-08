@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, onSnapshot, updateDoc, getDoc } from 'firebase/firestore';
-import { getCurrentUser } from '../util/authUtils';
-import './VotePage.css';
+import { getCurrentUser, signOutUser } from '../util/authUtils';
+import './VotePage.scss';
+import { useNavigate } from 'react-router-dom';
 
 const VotePage: React.FC<{ gameId: string }> = ({ gameId }) => {
   const [gameState, setGameState] = useState<any>(null);
+  const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const user = getCurrentUser();
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
-
     const gameRef = doc(db, 'games', gameId);
     const unsubscribe = onSnapshot(gameRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -21,6 +24,11 @@ const VotePage: React.FC<{ gameId: string }> = ({ gameId }) => {
     return () => unsubscribe();
   }, [gameId, user]);
 
+   const handleLogout = () => {
+    signOutUser();
+    navigate('/login');
+   };
+
   const checkAllPlayersVoted = async () => {
     const gameRef = doc(db, 'games', gameId);
     const docSnap = await getDoc(gameRef);
@@ -28,17 +36,11 @@ const VotePage: React.FC<{ gameId: string }> = ({ gameId }) => {
 
     if (!currentGameState) return false;
 
-    // Get all players who have votes recorded for this round
     const playersWithVotes = Object.values(currentGameState.playersVotes || {}).filter((playerVotes: any) => playerVotes.currentVote !== null);
-
-    console.log(playersWithVotes);
-
-    // Get all logged-in players from the users collection
-    const usersRef = doc(db, 'users'); // Assuming you keep a list of active users
+    const usersRef = doc(db, 'users');
     const usersSnap = await getDoc(usersRef);
     const activeUsers = usersSnap.data()?.activeUsers || [];
 
-    // Check if all active players have voted
     return playersWithVotes.length === activeUsers.length;
   };
 
@@ -49,7 +51,6 @@ const VotePage: React.FC<{ gameId: string }> = ({ gameId }) => {
 
     if (!currentGameState) return;
 
-    // Find the winner of the current round
     let highestVote = -1;
     let winner = null;
 
@@ -60,19 +61,17 @@ const VotePage: React.FC<{ gameId: string }> = ({ gameId }) => {
       }
     });
 
-    // Reset current votes while keeping used votes
     const updatedPlayersVotes = Object.fromEntries(
       Object.entries(currentGameState.playersVotes || {}).map(([userId, data]: [string, any]) => [
         userId,
         {
           ...data,
           currentVote: null,
-          usedVotes: data.usedVotes || [], // Preserve used votes
+          usedVotes: data.usedVotes || [],
         },
       ]),
     );
 
-    // Update game state for next round
     await updateDoc(gameRef, {
       roundCount: (currentGameState.roundCount || 0) + 1,
       playersVotes: updatedPlayersVotes,
@@ -81,37 +80,40 @@ const VotePage: React.FC<{ gameId: string }> = ({ gameId }) => {
     });
   };
 
-  const handleVote = async (number: number) => {
-    try {
-      if (!user || !gameState) return;
+  const handleNumberSelect = (number: number) => {
+    setSelectedNumber(number);
+    setError(null);
+  };
 
-      // Initialize the player's votes if they don't exist
+  const handleConfirmVote = async () => {
+    try {
+      if (!user || !gameState || !selectedNumber) return;
+
       const currentPlayerVotes = gameState.playersVotes?.[user.uid] || {
         currentVote: null,
         usedVotes: [],
       };
 
-      console.log(currentPlayerVotes)
-
-      // Check if number was already used
-      if (currentPlayerVotes.usedVotes?.includes(number)) {
+      if (currentPlayerVotes.usedVotes?.includes(selectedNumber)) {
         setError('You cannot use the same number twice!');
+        setSelectedNumber(null);
         return;
       }
 
       const gameRef = doc(db, 'games', gameId);
       await updateDoc(gameRef, {
         [`playersVotes.${user.uid}`]: {
-          currentVote: number,
-          usedVotes: [...(currentPlayerVotes.usedVotes || []), number],
+          currentVote: selectedNumber,
+          usedVotes: [...(currentPlayerVotes.usedVotes || []), selectedNumber],
         },
       });
 
-      // Check if all players have voted and start next round if they have
       const allVoted = await checkAllPlayersVoted();
       if (allVoted) {
         await startNextRound();
       }
+
+      setSelectedNumber(null);
     } catch (err) {
       setError('Failed to cast vote. Please try again.');
       console.error('Vote error:', err);
@@ -125,34 +127,47 @@ const VotePage: React.FC<{ gameId: string }> = ({ gameId }) => {
     usedVotes: [],
   };
 
+  const hasVotedThisRound = currentPlayerVotes.currentVote !== null;
+
   return (
     <div className='vote-container'>
-      <h1>Vote Page</h1>
-
       <div className='round-info'>
-        <h2>Round {gameState.roundCount || 1}</h2>
+        <div className='player-header'>
+          <h2>Welcome: {user.displayName}</h2>
+          <button onClick={handleLogout} className='logout-button'>
+            Logout
+          </button>
+        </div>
+        <h3>Current round: {gameState.roundCount || 1}</h3>
+        <h3>Your current score: {gameState.roundCount || 1}</h3>
+
         {error && <p className='error'>{error}</p>}
-        {gameState.lastRoundWinner && (
-          <p className='winner-info'>
-            Last round winner: {gameState.lastRoundWinner} with vote {gameState.lastWinningVote}
-          </p>
-        )}
+        {currentPlayerVotes.currentVote && <p>Your vote: {currentPlayerVotes.currentVote}</p>}
       </div>
+
+      {!hasVotedThisRound && (
+        <button className='confirm-button' disabled={!selectedNumber} onClick={handleConfirmVote}>
+          {selectedNumber ? `Confirm Vote: ${selectedNumber}` : 'Select a number'}
+        </button>
+      )}
 
       <div className='vote-buttons'>
         {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => {
           const isUsed = currentPlayerVotes.usedVotes?.includes(num);
-          const hasVotedThisRound = currentPlayerVotes.currentVote !== null;
+          const isSelected = selectedNumber === num;
 
           return (
-            <button key={num} onClick={() => handleVote(num)} disabled={isUsed || hasVotedThisRound} className={`vote-btn ${isUsed || hasVotedThisRound ? 'disabled' : ''}`}>
+            <button
+              key={num}
+              onClick={() => handleNumberSelect(num)}
+              disabled={isUsed || hasVotedThisRound}
+              className={`vote-btn ${isUsed || hasVotedThisRound ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
+            >
               {num}
             </button>
           );
         })}
       </div>
-
-      {currentPlayerVotes.currentVote && <p>Your vote: {currentPlayerVotes.currentVote}</p>}
     </div>
   );
 };
