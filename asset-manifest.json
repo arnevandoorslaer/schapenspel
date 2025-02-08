@@ -1,13 +1,14 @@
 {
   "files": {
     "main.css": "/schapenspel/static/css/main.8797e02c.css",
-    "main.js": "/schapenspel/static/js/main.4f6293a7.js",
+    "main.js": "/schapenspel/static/js/main.c0eaef0a.js",
+    "service-worker.js": "/schapenspel/service-worker.js",
     "index.html": "/schapenspel/index.html",
     "main.8797e02c.css.map": "/schapenspel/static/css/main.8797e02c.css.map",
-    "main.4f6293a7.js.map": "/schapenspel/static/js/main.4f6293a7.js.map"
+    "main.c0eaef0a.js.map": "/schapenspel/static/js/main.c0eaef0a.js.map"
   },
   "entrypoints": [
     "static/css/main.8797e02c.css",
-    "static/js/main.4f6293a7.js"
+    "static/js/main.c0eaef0a.js"
   ]
 }
